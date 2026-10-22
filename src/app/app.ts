@@ -11,6 +11,7 @@ export class App {
   protected tema = inject(Tema);
   protected menu = [
     { ruta: '/ofertas', icono: 'work', texto: 'Ofertas' },
+    { ruta: '/aprender', icono: 'school', texto: 'Aprender' },
     { ruta: '/resumen', icono: 'monitoring', texto: 'Resumen' },
   ];
 }

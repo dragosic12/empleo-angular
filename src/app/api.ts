@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ListaOfertas, Oferta, Resumen } from './models';
+import { Aprender, EstadoAprender, InfoPlan, ListaOfertas, Oferta, Resumen } from './models';
 
 export interface Filtro {
   estado: string;
@@ -34,5 +34,33 @@ export class Api {
 
   resumen(): Observable<Resumen> {
     return this.http.get<Resumen>(BASE + 'resumen');
+  }
+
+  // ─── Aprender ──────────────────────────────────────────────────────────────
+
+  aprender(alcance: 'pendientes' | 'todas'): Observable<Aprender> {
+    return this.http.get<Aprender>(BASE + 'aprender', { params: { alcance } });
+  }
+
+  marcarAprender(herramienta: string, estado: EstadoAprender | null): Observable<unknown> {
+    return this.http.put(BASE + 'aprender/' + herramienta, { estado });
+  }
+
+  /** Descarga en el servidor la descripción completa de la oferta. */
+  traerTexto(id: string): Observable<{ ok: boolean; error?: string }> {
+    return this.http.post<{ ok: boolean; error?: string }>(BASE + 'ofertas/' + id + '/texto/traer', {});
+  }
+
+  pegarTexto(id: string, texto: string): Observable<unknown> {
+    return this.http.put(BASE + 'ofertas/' + id + '/texto', { texto });
+  }
+
+  /** Lanza el plan de estudio con IA (tarda 30-90 s; se consulta con verPlan). */
+  pedirPlan(id: string): Observable<InfoPlan> {
+    return this.http.post<InfoPlan>(BASE + 'ofertas/' + id + '/plan', {});
+  }
+
+  verPlan(id: string): Observable<InfoPlan> {
+    return this.http.get<InfoPlan>(BASE + 'ofertas/' + id + '/plan');
   }
 }
