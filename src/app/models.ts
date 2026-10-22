@@ -30,6 +30,7 @@ export interface Oferta {
   texto?: InfoTexto;
   herramientas?: { tienes: string[]; faltan: Herramienta[] };
   plan?: InfoPlan;
+  carta?: InfoCarta;
 }
 
 /** Lo mínimo para abrir la ficha (desde la pestaña Aprender solo se tiene esto). */
@@ -103,6 +104,22 @@ export interface InfoPlan {
   plan?: PlanEstudio;
   at?: string;
   texto_completo?: boolean;
+  error?: string;
+}
+
+export type Idioma = 'es' | 'en';
+
+/** Carta de presentación con IA: carta, asunto del correo y mensaje corto (LinkedIn o formulario). */
+export interface InfoCarta {
+  estado: 'ninguno' | 'generando' | 'listo';
+  idioma_sugerido: Idioma;
+  idioma?: Idioma;
+  asunto?: string;
+  carta?: string;
+  mensaje?: string;
+  instrucciones?: string;
+  at?: string;
+  editada?: boolean;
   error?: string;
 }
 

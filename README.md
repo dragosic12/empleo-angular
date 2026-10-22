@@ -11,6 +11,7 @@ Funciona en producción en mi servidor casero, detrás de nginx con autenticaci�
 - **Ficha de la oferta**: descripción completa, motivo del encaje, enlace al anuncio y cambio de estado (me interesa, aplicada o descartada con motivo).
 - **Para encajar mejor** (en la ficha): qué herramientas de la oferta ya están en mi CV y cuáles faltan, con dónde aprenderlas, horas orientativas y un mini-proyecto para poder demostrarlas. Si la fuente solo da un resumen, el servidor descarga la descripción completa al abrir la ficha; si la fuente lo bloquea, se puede pegar a mano.
 - **Plan de estudio con IA**: Claude lee la oferta y el CV y propone huecos por prioridad, un plan de 1-2 semanas, un mini-proyecto y preguntas probables de entrevista. Tarda 30-90 s, así que se lanza y se consulta cada 3 s hasta que está listo.
+- **Carta de presentación con IA** (en la ficha): carta completa, asunto del correo y mensaje corto para LinkedIn o un formulario, en español o inglés (propone el idioma de la oferta) y con indicaciones opcionales. Solo usa hechos del CV. Se puede retocar, guardar y copiar.
 - **Aprender**: ranking de las herramientas que más piden las ofertas y no están en el CV, con su estado (aprendiendo, aprendida, no me interesa) y las ofertas que las piden.
 - **Resumen**: KPIs (ofertas vistas, encaje medio, aplicadas, sin respuesta), embudo de la búsqueda y reparto por estado.
 - **Tema claro y oscuro** (recuerda la elección o sigue al sistema) y diseño adaptado a móvil: barra lateral en escritorio y barra inferior en móvil.
@@ -20,8 +21,9 @@ Funciona en producción en mi servidor casero, detrás de nginx con autenticaci�
 - Angular 20 con **componentes standalone** y **zoneless** (sin zone.js).
 - Estado con **signals** (`signal`, `computed`, `linkedSignal`, `input`, `output`) y nueva sintaxis de plantillas (`@if`, `@for`, `@switch`).
 - **Router** con rutas de carga diferida (`loadComponent`) y `HashLocation`, para no depender de reglas de fallback en el servidor.
+- Los borradores de la carta usan `linkedSignal` con una fuente `computed` cuya igualdad es la fecha de la carta: se reinician solo cuando llega una carta nueva, no cada vez que se recarga la ficha (un `linkedSignal` recalcula con cualquier cambio de lo que lee su `source`).
 - **HttpClient** con `withFetch()` y un **interceptor funcional** que añade la cabecera que la API exige en las escrituras.
-- **RxJS** para la búsqueda: `Subject` + `debounceTime` + `switchMap` (cancela la petición anterior) y `takeUntilDestroyed`; para esperar al plan de IA, sondeo con `timer` + `switchMap` + `takeWhile`; y `toObservable` para recargar la pestaña Aprender cuando cambia el filtro.
+- **RxJS** para la búsqueda: `Subject` + `debounceTime` + `switchMap` (cancela la petición anterior) y `takeUntilDestroyed`; para esperar al plan y a la carta de IA, un sondeo común (`Api.esperar`) con `timer` + `switchMap` + `takeWhile`; y `toObservable` para recargar la pestaña Aprender cuando cambia el filtro.
 - TypeScript estricto y CSS propio con variables (tokens de color para los dos temas), sin librerías de componentes.
 
 ## Estructura
@@ -37,6 +39,7 @@ src/app/
   ofertas.ts             Página de ofertas: filtros, pestañas y rejilla
   oferta-card.ts         Tarjeta de oferta
   oferta-detalle.ts      Panel lateral con la ficha y las acciones
+  carta.ts               Carta de presentación con IA: pestañas, edición, guardar y copiar
   encaje.ts              "Para encajar mejor": lo que tienes, lo que falta y texto completo
   herramienta-info.ts    Cómo aprender una herramienta y sus botones de estado
   plan-estudio.ts        Plan de estudio con IA (petición y sondeo)
@@ -50,11 +53,13 @@ src/styles.css           Tokens de diseño y estilos
 | Método | Ruta | Uso |
 | --- | --- | --- |
 | GET | `/api/ofertas?estado=&q=&fuente=&orden=` | Listado filtrado |
-| GET | `/api/ofertas/{id}` | Ficha: descripción, herramientas, texto y plan |
+| GET | `/api/ofertas/{id}` | Ficha: descripción, herramientas, texto, plan y carta |
 | POST | `/api/ofertas/{id}/estado` | Cambiar estado (`{ estado, motivo }`) |
 | POST | `/api/ofertas/{id}/texto/traer` | Descargar la descripción completa |
 | PUT | `/api/ofertas/{id}/texto` | Guardar la descripción pegada a mano |
 | POST / GET | `/api/ofertas/{id}/plan` | Lanzar / consultar el plan de estudio con IA |
+| POST / GET | `/api/ofertas/{id}/carta` | Lanzar (`{ idioma, instrucciones }`) / consultar la carta |
+| PUT | `/api/ofertas/{id}/carta` | Guardar los retoques (`{ asunto, carta, mensaje }`) |
 | GET | `/api/aprender?alcance=pendientes\|todas` | Ranking de herramientas que faltan |
 | PUT | `/api/aprender/{id}` | Marcar herramienta (`{ estado }`) |
 | GET | `/api/resumen` | KPIs y embudo |

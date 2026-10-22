@@ -1,5 +1,5 @@
 import { Component, DestroyRef, effect, inject, input, linkedSignal } from '@angular/core';
-import { Subscription, switchMap, takeWhile, timer } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Api } from './api';
 import { InfoPlan, hace } from './models';
 
@@ -124,8 +124,7 @@ export class PlanEstudio {
 
   private esperar(): void {
     if (this.sondeo && !this.sondeo.closed) return;
-    this.sondeo = timer(3000, 3000)
-      .pipe(switchMap(() => this.api.verPlan(this.ofertaId())), takeWhile((i) => i.estado === 'generando', true))
+    this.sondeo = this.api.esperar(() => this.api.verPlan(this.ofertaId()))
       .subscribe({
         next: (i) => this.estado.set(i),
         error: () => this.estado.update((e) => ({ ...e, estado: 'ninguno', error: 'Se perdió la conexión mientras se preparaba el plan.' })),

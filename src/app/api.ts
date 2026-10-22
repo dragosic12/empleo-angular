@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { Aprender, EstadoAprender, InfoPlan, ListaOfertas, Oferta, Resumen } from './models';
+import { Observable, switchMap, takeWhile, timer } from 'rxjs';
+import { Aprender, EstadoAprender, Idioma, InfoCarta, InfoPlan, ListaOfertas, Oferta, Resumen } from './models';
 
 export interface Filtro {
   estado: string;
@@ -62,5 +62,23 @@ export class Api {
 
   verPlan(id: string): Observable<InfoPlan> {
     return this.http.get<InfoPlan>(BASE + 'ofertas/' + id + '/plan');
+  }
+
+  /** Lanza la carta de presentación con IA (20-60 s; se consulta con verCarta). */
+  pedirCarta(id: string, idioma: Idioma, instrucciones: string): Observable<InfoCarta> {
+    return this.http.post<InfoCarta>(BASE + 'ofertas/' + id + '/carta', { idioma, instrucciones });
+  }
+
+  verCarta(id: string): Observable<InfoCarta> {
+    return this.http.get<InfoCarta>(BASE + 'ofertas/' + id + '/carta');
+  }
+
+  guardarCarta(id: string, cambios: { asunto: string; carta: string; mensaje: string }): Observable<unknown> {
+    return this.http.put(BASE + 'ofertas/' + id + '/carta', cambios);
+  }
+
+  /** Consulta cada 3 s un trabajo de IA hasta que deja de estar "generando" (emite también el estado final). */
+  esperar<T extends { estado: string }>(consulta: () => Observable<T>): Observable<T> {
+    return timer(3000, 3000).pipe(switchMap(consulta), takeWhile((i) => i.estado === 'generando', true));
   }
 }

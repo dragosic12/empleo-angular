@@ -1,11 +1,12 @@
 import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { Api } from './api';
+import { Carta } from './carta';
 import { Encaje } from './encaje';
 import { ETIQUETAS, MOTIVOS, Oferta, OfertaRef } from './models';
 
 @Component({
   selector: 'app-oferta-detalle',
-  imports: [Encaje],
+  imports: [Carta, Encaje],
   template: `
     <div class="fondo" (click)="cerrar.emit()"></div>
     <section class="panel" role="dialog" aria-modal="true" [attr.aria-label]="o().title">
@@ -34,7 +35,11 @@ import { ETIQUETAS, MOTIVOS, Oferta, OfertaRef } from './models';
         }
         @if (o().reason) { <p class="razon-det">{{ o().reason }}</p> }
 
-        @if (detalle(); as d) { <app-encaje [oferta]="d" (recargar)="cargar()" /> }
+        @if (detalle(); as d) {
+          <h3 class="sub">Carta de presentación</h3>
+          <app-carta [ofertaId]="d.id" [info]="d.carta ?? { estado: 'ninguno', idioma_sugerido: 'es' }" [textoCompleto]="d.texto?.completa ?? true" />
+          <app-encaje [oferta]="d" (recargar)="cargar()" />
+        }
 
         <h3 class="sub">Descripción</h3>
         @if (errorCarga()) { <p class="error">No se pudo cargar la oferta.</p> }
